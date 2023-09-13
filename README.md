@@ -21,3 +21,7 @@ Python 3 comes with a virtual enviornment module built-in called 'venv'. There's
 5 - In .gitignore file, you may want to add the virtual enviornment folder as 'venv/' is not picking the folder up.
 
 6 - To delete, just delete the virtual enviornment folder from the project directory
+
+# Data Source
+
+https://www.alphavantage.co/
