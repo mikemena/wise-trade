@@ -6,13 +6,13 @@ Python 3 comes with a virtual enviornment module built-in called 'venv'. There's
 
 1- In terminal navigate to the project folder
 
-2 - To create a virtual enviornment. In this example calling it 'stock_backend_venv' :
+2 - To create a virtual enviornment. In this example calling it 'alpha_venv' :
 
-    python3 -m venv stock_backend_venv
+    python3 -m venv alpha_venv
 
 3 - Activate the virtual enviornment by sourcing the activate script in its bin directory
 
-    source stock_backend_venv/bin/activate
+    source alpha_venv/bin/activate
 
 4 - To deactivate the virtual enviornment, just type 'deactivate':
 
