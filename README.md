@@ -25,3 +25,7 @@ Python 3 comes with a virtual enviornment module built-in called 'venv'. There's
 # Data Source
 
 https://www.alphavantage.co/
+
+## To install packages
+
+python3 -m pip install yfinance pandas
