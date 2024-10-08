@@ -1,0 +1,31 @@
+body {
+  background-color: #f2efe9;
+  color: #59554c;
+  margin-left: 20px;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.header {
+  background-color: #f2efe9;
+  color: #59554c;
+  padding-left: 20px;
+}
+
+#category-select {
+  margin-bottom: 20px;
+  padding-left: 20px;
+  height: 40px;
+  width: 200px;
+  font-size: medium;
+}
+
+table {
+  padding-left: 20px;
+}
+#select-category {
+  margin-bottom: 20px;
+  padding-left: 20px;
+}
