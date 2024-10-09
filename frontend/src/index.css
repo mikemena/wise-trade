@@ -8,24 +8,43 @@ body {
   box-sizing: border-box;
 }
 
-.header {
-  background-color: #f2efe9;
-  color: #59554c;
-  padding-left: 20px;
-}
-
 #category-select {
-  margin-bottom: 20px;
-  padding-left: 20px;
-  height: 40px;
+  margin-bottom: 10px;
+  padding-left: 10px;
+  height: 30px;
   width: 200px;
   font-size: medium;
+  border: none;
 }
 
 table {
   padding-left: 20px;
 }
+
+.table-bordered {
+  border-collapse: collapse; /* Ensure the borders are collapsed */
+}
+
+.table-bordered th,
+.table-bordered td {
+  border: 1px solid #d0d0d0; /* Change this color to whatever you prefer */
+}
+
 #select-category {
   margin-bottom: 20px;
   padding-left: 20px;
+}
+
+.filter-row {
+  padding-left: 0px;
+  margin: 0;
+}
+
+.filter-cell {
+  padding: 5px;
+}
+
+.filter-input {
+  height: 30px;
+  border: none;
 }

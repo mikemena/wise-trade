@@ -19,6 +19,29 @@ async function getStockInfo(ticker) {
   try {
     const stock = await yahooFinance.quote(ticker);
 
+    // Fetch earnings data
+    let earningsDate = 'Earnings date not available';
+    try {
+      const earningsSummary = await yahooFinance.quoteSummary(ticker, {
+        modules: ['earnings'] // Request the earnings module
+      });
+
+      const earnings = earningsSummary.earnings;
+      if (
+        earnings &&
+        earnings.earningsChart &&
+        earnings.earningsChart.earningsDate
+      ) {
+        earningsDate = earnings.earningsChart.earningsDate.map(dateString => {
+          const date = new Date(dateString);
+          return date.toLocaleDateString('en-US');
+        });
+      }
+    } catch (error) {
+      console.warn(`No earnings data found for ${ticker}: ${error.message}`);
+      // Keep the default "Earnings date not available"
+    }
+
     const currentPrice = stock.regularMarketPrice || 'N/A';
     const fiftyTwoWeekHigh = stock.fiftyTwoWeekHigh || 'N/A';
 
@@ -44,7 +67,8 @@ async function getStockInfo(ticker) {
       CHANGE: stock.regularMarketChangePercent
         ? `${stock.regularMarketChangePercent.toFixed(2)}%`
         : 'N/A',
-      HighToCurrentChange: highToCurrentChange
+      HighToCurrentChange: highToCurrentChange,
+      EarningsDate: earningsDate
     };
   } catch (error) {
     console.error(`Error fetching stock data for ${ticker}: ${error}`);
@@ -71,10 +95,10 @@ app.get('/api/stocks/:category', async (req, res) => {
   const { category } = req.params;
 
   try {
-    const tickers = loadTickers(category.toLowerCase());
+    const tickers = loadTickers(category.toLowerCase()); // Load tickers from JSON file
     const stockDataPromises = tickers.map(ticker => getStockInfo(ticker));
-    const stockData = await Promise.all(stockDataPromises);
-    res.json(stockData);
+    const stockData = await Promise.all(stockDataPromises); // Wait for all promises
+    res.json(stockData); // Send the response
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

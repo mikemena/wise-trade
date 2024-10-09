@@ -3,7 +3,7 @@
   "tech": ["TSLA", "GOOGL", "MSFT", "AMZN", "NET", "MDB", "CRWD", "PANW"],
   "finance": ["JPM", "GS", "BAC", "WFC"],
   "chips": ["INTC", "NVDA", "AMD", "MU", "ARM"],
-  "bitcoin": ["FBTC", "COIN", "MSTR", "HIVE", "RIOT", "MARA", "HUT"],
+  "bitcoin": ["COIN", "MSTR", "HIVE", "RIOT", "MARA", "HUT"],
   "ai": ["PLTR", "AMD", "GOOGL", "MSFT", "AAPL"],
   "energy": ["NEE", "DUK", "NEP", "D"],
   "airlines": ["AAL", "DAL", "UAL", "LUV", "JBLU", "SAVE", "BA"],
