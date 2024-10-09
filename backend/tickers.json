@@ -14,7 +14,7 @@
   "finance": ["JPM", "GS", "BAC", "WFC"],
   "chips": ["INTC", "NVDA", "AMD", "MU", "ARM"],
   "bitcoin": ["COIN", "MSTR", "HIVE", "RIOT", "MARA", "HUT"],
-  "ai": ["PLTR"],
+  "ai": ["PLTR", "AI"],
   "energy": ["NEE", "DUK", "NEP", "D"],
   "airlines": ["AAL", "DAL", "UAL", "LUV", "JBLU", "SAVE", "BA"],
   "travel": ["EXPE", "BKNG", "TRIP", "ABNB", "LYFT", "UBER"],
