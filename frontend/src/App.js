@@ -91,16 +91,20 @@ function App() {
 
   const filteredData = sortedData.filter(stock => {
     return (
-      stock.Ticker.toLowerCase().includes(filters.Ticker.toLowerCase()) &&
-      stock.CompanyName.toLowerCase().includes(
+      (stock.Ticker?.toLowerCase() || '').includes(
+        filters.Ticker.toLowerCase()
+      ) &&
+      (stock.CompanyName?.toLowerCase() || '').includes(
         filters.CompanyName.toLowerCase()
       ) &&
-      String(stock.CurrentPrice).includes(filters.CurrentPrice) &&
-      String(stock.FiftyTwoWeekHigh).includes(filters.FiftyTwoWeekHigh) &&
-      String(stock.FiftyTwoWeekLow).includes(filters.FiftyTwoWeekLow) &&
-      String(stock.MarketCap).includes(filters.MarketCap) &&
-      String(stock.CHANGE).includes(filters.CHANGE) &&
-      String(stock.HighToCurrentChange).includes(filters.HighToCurrentChange)
+      String(stock.CurrentPrice || '').includes(filters.CurrentPrice) &&
+      String(stock.FiftyTwoWeekHigh || '').includes(filters.FiftyTwoWeekHigh) &&
+      String(stock.FiftyTwoWeekLow || '').includes(filters.FiftyTwoWeekLow) &&
+      String(stock.MarketCap || '').includes(filters.MarketCap) &&
+      String(stock.CHANGE || '').includes(filters.CHANGE) &&
+      String(stock.HighToCurrentChange || '').includes(
+        filters.HighToCurrentChange
+      )
     );
   });
 
