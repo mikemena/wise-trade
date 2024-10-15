@@ -1,5 +1,5 @@
 {
-  "oil": ["MPC", "OXY", "CVX", "XOM", "MRO", "COP", "BP", "SHEL"],
+  "oil": ["MPC", "OXY", "CVX", "XOM", "MRO", "COP", "BP", "SHEL", "IEO"],
   "tech": [
     "TSLA",
     "GOOGL",
@@ -12,10 +12,21 @@
     "PANW"
   ],
   "finance": ["JPM", "GS", "BAC", "WFC"],
-  "chips": ["INTC", "NVDA", "AMD", "MU", "ARM"],
+  "chips": ["INTC", "NVDA", "AMD", "MU", "ARM", "TSM"],
   "bitcoin": ["COIN", "MSTR", "HIVE", "RIOT", "MARA", "HUT"],
   "ai": ["PLTR", "AI"],
-  "energy": ["NEE", "DUK", "NEP", "D"],
+  "energy": [
+    "NEE",
+    "DUK",
+    "NEP",
+    "D",
+    "SO",
+    "AEP",
+    "XEL",
+    "EXC",
+    "PEG",
+    "OKLO"
+  ],
   "airlines": ["AAL", "DAL", "UAL", "LUV", "JBLU", "SAVE", "BA"],
   "travel": ["EXPE", "BKNG", "TRIP", "ABNB", "LYFT", "UBER"],
   "hotels": ["H", "MAR", "HLT"],
