@@ -9,7 +9,8 @@
     "NET",
     "MDB",
     "CRWD",
-    "PANW"
+    "PANW",
+    "ADBE"
   ],
   "finance": ["JPM", "GS", "BAC", "WFC"],
   "chips": ["INTC", "NVDA", "AMD", "MU", "ARM", "TSM"],
@@ -25,7 +26,10 @@
     "XEL",
     "EXC",
     "PEG",
-    "OKLO"
+    "OKLO",
+    "CEG",
+    "CCJ",
+    "BWXT"
   ],
   "airlines": ["AAL", "DAL", "UAL", "LUV", "JBLU", "SAVE", "BA"],
   "travel": ["EXPE", "BKNG", "TRIP", "ABNB", "LYFT", "UBER"],
