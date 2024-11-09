@@ -15,7 +15,9 @@ function App() {
     { value: 'airlines', label: 'Airlines' },
     { value: 'travel', label: 'Travel' },
     { value: 'hotels', label: 'Hotels' },
-    { value: 'shipping', label: 'Shipping' }
+    { value: 'shipping', label: 'Shipping' },
+    { value: 'builders', label: 'Builders' },
+    { value: 'materials', label: 'Materials' }
   ]);
 
   const [selectedCategory, setSelectedCategory] = useState('all');
