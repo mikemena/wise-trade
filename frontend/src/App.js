@@ -242,10 +242,18 @@ function App() {
               <tr key={index}>
                 <td>{stock.Ticker}</td>
                 <td>{stock.CompanyName}</td>
-                <td>${stock.CurrentPrice.toFixed(2)}</td>
+                <td>
+                  ${stock.CurrentPrice ? stock.CurrentPrice.toFixed(2) : 'N/A'}
+                </td>
+
                 <td>${stock.FiftyTwoWeekHigh}</td>
                 <td>${stock.FiftyTwoWeekLow}</td>
-                <td>${(stock.MarketCap / 1e9).toFixed(2)}B</td>
+                <td>
+                  $
+                  {stock.MarketCap ? (stock.MarketCap / 1e9).toFixed(2) : 'N/A'}
+                  B
+                </td>
+
                 <td
                   style={{
                     backgroundColor: getPriceChangeColor(stock.CHANGE),

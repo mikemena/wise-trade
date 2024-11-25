@@ -31,7 +31,7 @@
     "CCJ",
     "BWXT"
   ],
-  "airlines": ["AAL", "DAL", "UAL", "LUV", "JBLU", "SAVE", "BA"],
+  "airlines": ["AAL", "DAL", "UAL", "LUV", "JBLU", "BA"],
   "travel": ["EXPE", "BKNG", "TRIP", "ABNB", "LYFT", "UBER"],
   "hotels": ["H", "MAR", "HLT"],
   "shipping": ["UPS", "FDX"],
