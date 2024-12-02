@@ -1,5 +1,5 @@
 {
-  "oil": ["MPC", "OXY", "CVX", "XOM", "MRO", "COP", "BP", "SHEL", "IEO"],
+  "oil": ["MPC", "OXY", "CVX", "XOM", "COP", "BP", "SHEL"],
   "tech": [
     "TSLA",
     "GOOGL",
