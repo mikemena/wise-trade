@@ -13,19 +13,8 @@
     "ADBE"
   ],
   "finance": ["JPM", "GS", "BAC", "WFC"],
-  "chips": ["INTC", "NVDA", "AMD", "MU", "ARM", "TSM"],
-  "bitcoin": [
-    "COIN",
-    "MSTR",
-    "HIVE",
-    "RIOT",
-    "MARA",
-    "GBTC",
-    "FBTC",
-    "HOOD",
-    "SQ",
-    "HUT"
-  ],
+  "chips": ["INTC", "NVDA", "AMD", "MU", "ARM", "TSM", "AVGO"],
+  "bitcoin": ["COIN", "MSTR", "HIVE", "RIOT", "MARA", "HOOD", "SQ"],
   "etf": ["GBTC", "FBTC", "IBIT", "ARKB", "BITB"],
   "ai": ["PLTR", "AI"],
   "energy": [
@@ -48,5 +37,6 @@
   "hotels": ["H", "MAR", "HLT"],
   "shipping": ["UPS", "FDX"],
   "builders": ["DHI", "LEN", "PHM", "TOL", "NVR", "MTH", "KBH", "TMHC"],
-  "materials": ["HD", "LOW", "SHW", "BLDR", "VMC", "MLM", "TSCO", "X", "NUE"]
+  "materials": ["HD", "LOW", "SHW", "BLDR", "VMC", "MLM", "TSCO", "X", "NUE"],
+  "psychedelic": ["CMPS", "GHRS", "MNMD", "RVVTF", "ATAI", "RLMD"]
 }

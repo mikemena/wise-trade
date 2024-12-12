@@ -18,7 +18,8 @@ function App() {
     { value: 'hotels', label: 'Hotels' },
     { value: 'shipping', label: 'Shipping' },
     { value: 'builders', label: 'Builders' },
-    { value: 'materials', label: 'Materials' }
+    { value: 'materials', label: 'Materials' },
+    { value: 'psychedelic', label: 'Psychedelic' }
   ]);
 
   const [selectedCategory, setSelectedCategory] = useState('all');
