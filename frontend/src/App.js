@@ -9,7 +9,6 @@ function App() {
     { value: 'tech', label: 'Tech' },
     { value: 'finance', label: 'Finance' },
     { value: 'chips', label: 'Chips' },
-    { value: 'bitcoin', label: 'Bitcoin' },
     { value: 'etf', label: 'ETF' },
     { value: 'ai', label: 'AI' },
     { value: 'energy', label: 'Energy' },

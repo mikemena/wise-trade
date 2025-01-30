@@ -14,7 +14,6 @@
   ],
   "finance": ["JPM", "GS", "BAC", "WFC"],
   "chips": ["INTC", "NVDA", "AMD", "MU", "ARM", "TSM", "AVGO"],
-  "bitcoin": ["COIN", "MSTR", "HIVE", "HUT", "RIOT", "MARA", "HOOD", "SQ"],
   "etf": ["GBTC", "FBTC", "IBIT", "ARKB", "BITB"],
   "ai": ["PLTR", "AI"],
   "energy": [
