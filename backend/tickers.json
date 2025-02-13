@@ -15,11 +15,10 @@
   "finance": ["JPM", "GS", "BAC", "WFC"],
   "chips": ["INTC", "NVDA", "AMD", "MU", "ARM", "TSM", "AVGO"],
   "etf": ["GBTC", "FBTC", "IBIT", "ARKB", "BITB"],
-  "ai": ["PLTR", "AI"],
+  "ai": ["PLTR", "AI", "TEM"],
   "energy": [
     "NEE",
     "DUK",
-    "NEP",
     "D",
     "SO",
     "AEP",
