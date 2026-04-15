@@ -1,110 +1,128 @@
-const express = require('express');
-const cors = require('cors');
-const yahooFinance = require('yahoo-finance2').default;
-const fs = require('fs');
+const express = require("express");
+const cors = require("cors");
+const fs = require("fs");
+
 const app = express();
 const PORT = 5001;
 
-// Middleware
-// app.use(cors());
-app.use(
-  cors({
-    origin: '*'
-  })
-);
+// *** Paste your Finnhub API key here ***
+const FINNHUB_API_KEY = "d7fcht1r01qpjqqkb860d7fcht1r01qpjqqkb86g";
+
+const BASE_URL = "https://finnhub.io/api/v1";
+
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-// Helper function to fetch stock data for a given ticker
+// Helper to call Finnhub endpoints
+async function finnhubFetch(endpoint) {
+  const url = `${BASE_URL}${endpoint}&token=${FINNHUB_API_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Finnhub responded with status ${res.status}`);
+  return res.json();
+}
+
+// Fetch all data for a single ticker
 async function getStockInfo(ticker) {
   try {
-    const stock = await yahooFinance.quote(ticker);
+    const today = new Date().toISOString().split("T")[0];
+    const in90Days = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0];
 
-    // Fetch earnings data
-    let earningsDate = 'Earnings date not available';
-    try {
-      const earningsSummary = await yahooFinance.quoteSummary(ticker, {
-        modules: ['earnings'] // Request the earnings module
-      });
+    const [quote, profile, metrics, earnings] = await Promise.all([
+      finnhubFetch(`/quote?symbol=${ticker}`),
+      finnhubFetch(`/stock/profile2?symbol=${ticker}`),
+      finnhubFetch(`/stock/metric?symbol=${ticker}&metric=all`),
+      finnhubFetch(
+        `/calendar/earnings?symbol=${ticker}&from=${today}&to=${in90Days}`,
+      ),
+    ]);
 
-      const earnings = earningsSummary.earnings;
-      if (
-        earnings &&
-        earnings.earningsChart &&
-        earnings.earningsChart.earningsDate
-      ) {
-        earningsDate = earnings.earningsChart.earningsDate.map(dateString => {
-          const date = new Date(dateString);
-          return date.toLocaleDateString('en-US');
-        });
-      }
-    } catch (error) {
-      console.warn(`No earnings data found for ${ticker}: ${error.message}`);
-      // Keep the default "Earnings date not available"
-    }
+    const currentPrice = quote.c || "N/A";
+    const fiftyTwoWeekHigh = metrics.metric?.["52WeekHigh"] || "N/A";
+    const fiftyTwoWeekLow = metrics.metric?.["52WeekLow"] || "N/A";
 
-    const currentPrice = stock.regularMarketPrice || 'N/A';
-    const fiftyTwoWeekHigh = stock.fiftyTwoWeekHigh || 'N/A';
-
-    // Calculate the percentage change from 52-week high to current price
-    let highToCurrentChange = 'N/A';
-    if (currentPrice !== 'N/A' && fiftyTwoWeekHigh !== 'N/A') {
+    let highToCurrentChange = "N/A";
+    if (currentPrice !== "N/A" && fiftyTwoWeekHigh !== "N/A") {
       highToCurrentChange =
         (((currentPrice - fiftyTwoWeekHigh) / fiftyTwoWeekHigh) * 100).toFixed(
-          2
-        ) + '%';
+          2,
+        ) + "%";
+    }
+
+    // Finnhub returns marketCapitalization in millions USD.
+    // Multiply by 1e6 so the frontend's /1e9 math shows correct billions.
+    const marketCap = profile.marketCapitalization
+      ? profile.marketCapitalization * 1e6
+      : "N/A";
+
+    let earningsDate = "Earnings date not available";
+    if (earnings.earningsCalendar && earnings.earningsCalendar.length > 0) {
+      earningsDate = earnings.earningsCalendar.map((e) =>
+        new Date(e.date).toLocaleDateString("en-US"),
+      );
     }
 
     return {
-      Ticker: stock.symbol,
-      CompanyName: stock.shortName,
-      CurrentPrice: stock.regularMarketPrice || 'N/A',
+      Ticker: ticker,
+      CompanyName: profile.name || "N/A",
+      CurrentPrice: currentPrice,
       CurrentDate: new Date().toLocaleDateString(),
-      FiftyTwoWeekHigh: stock.fiftyTwoWeekHigh || 'N/A',
-      FiftyTwoWeekLow: stock.fiftyTwoWeekLow || 'N/A',
-      MarketCap: stock.marketCap || 'N/A',
-      Industry: stock.industry || 'N/A',
-      Sector: stock.sector || 'N/A',
-      CHANGE: stock.regularMarketChangePercent
-        ? `${stock.regularMarketChangePercent.toFixed(2)}%`
-        : 'N/A',
+      FiftyTwoWeekHigh: fiftyTwoWeekHigh,
+      FiftyTwoWeekLow: fiftyTwoWeekLow,
+      MarketCap: marketCap,
+      Industry: profile.finnhubIndustry || "N/A",
+      Sector: profile.finnhubIndustry || "N/A",
+      CHANGE: quote.dp != null ? `${quote.dp.toFixed(2)}%` : "N/A",
       HighToCurrentChange: highToCurrentChange,
-      EarningsDate: earningsDate
+      EarningsDate: earningsDate,
     };
   } catch (error) {
-    console.error(`Error fetching stock data for ${ticker}: ${error}`);
+    console.error(`Error fetching data for ${ticker}:`, error.message);
     return { error: `Failed to fetch data for ticker: ${ticker}` };
   }
 }
 
-// Helper function to load tickers from the JSON file
+// Load tickers from JSON file
 function loadTickers(category) {
-  const data = fs.readFileSync('tickers.json');
+  const data = fs.readFileSync("tickers.json");
   const tickers = JSON.parse(data);
-
-  if (category === 'all') {
-    return Object.values(tickers).flat();
-  } else if (tickers[category]) {
-    return tickers[category];
-  } else {
-    throw new Error(`Category '${category}' not found.`);
-  }
+  if (category === "all") return Object.values(tickers).flat();
+  if (tickers[category]) return tickers[category];
+  throw new Error(`Category '${category}' not found.`);
 }
 
-// API endpoint to fetch stock data based on category or all
-app.get('/api/stocks/:category', async (req, res) => {
-  const { category } = req.params;
+// Expose tickers.json to the frontend so it can filter by category client-side
+app.get("/api/tickers", (req, res) => {
+  const data = fs.readFileSync("tickers.json");
+  res.json(JSON.parse(data));
+});
 
+// Stock data endpoint
+app.get("/api/stocks/:category", async (req, res) => {
+  const { category } = req.params;
   try {
-    const tickers = loadTickers(category.toLowerCase()); // Load tickers from JSON file
-    const stockDataPromises = tickers.map(ticker => getStockInfo(ticker));
-    const stockData = await Promise.all(stockDataPromises); // Wait for all promises
-    res.json(stockData); // Send the response
+    const tickers = loadTickers(category.toLowerCase());
+    const results = [];
+
+    // Batch in groups of 12 to stay under Finnhub's 60 calls/min free tier
+    // (12 stocks × 4 calls each = 48 calls/batch)
+    const BATCH_SIZE = 12;
+    for (let i = 0; i < tickers.length; i += BATCH_SIZE) {
+      const batch = tickers.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.all(batch.map((t) => getStockInfo(t)));
+      results.push(...batchResults);
+      if (i + BATCH_SIZE < tickers.length) {
+        await new Promise((r) => setTimeout(r, 1100));
+      }
+    }
+
+    res.json(results);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Start the server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
