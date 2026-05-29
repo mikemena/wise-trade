@@ -1,152 +1,441 @@
-# 📈 Stock Dashboard
+# Wise Trades
 
-A full-stack stock tracking dashboard built with **React** (frontend) and **Express** (backend). It pulls real-time stock data from Yahoo Finance and displays price, market cap, 52-week highs/lows, daily change, and upcoming earnings dates — all filterable and sortable by category.
+Wise Trades is a stock dashboard application built with a React frontend and a Python FastAPI backend.
 
----
-
-## Features
-
-- Browse stocks across 15 categories: Oil, Tech, Finance, Chips, AI, Energy, Airlines, Travel, Hotels, Shipping, Builders, Materials, and more
-- Real-time data via Yahoo Finance API
-- Sortable columns (click any header)
-- Filter by Ticker or Company Name
-- Color-coded daily change and % from 52-week high
-- Earnings date display
+The application displays categorized stock data sourced from Yahoo Finance through the `yfinance` package. Users can sort, filter, and analyze stocks by category, including Oil, Tech, Finance, Chips, AI, Energy, Airlines, Travel, Hotels, Shipping, Builders, and Materials.
 
 ---
 
-## Tech Stack
+# Tech Stack
 
-| Layer    | Technology                          |
-|----------|-------------------------------------|
-| Frontend | React, Axios                        |
-| Backend  | Node.js, Express, yahoo-finance2    |
+## Frontend
+
+* React
+* Axios
+* CSS
+
+## Backend
+
+* Python
+* FastAPI
+* Uvicorn
+* yfinance
+
+## Development Tools
+
+* Node.js
+* npm
+* concurrently
+* Python Virtual Environment (`venv`)
 
 ---
 
-## Project Structure
+# Project Structure
 
+```text
+wise-trade/
+├── .venv/
+│
+├── backend/
+│   ├── main.py
+│   ├── test_yahoo.py
+│   └── tickers.json
+│
+├── frontend/
+│   ├── public/
+│   │   └── assets/
+│   │       └── images/
+│   │
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── header.js
+│   │   │   └── header.css
+│   │   │
+│   │   ├── App.js
+│   │   ├── index.css
+│   │   └── index.js
+│   │
+│   ├── package.json
+│   └── package-lock.json
+│
+├── package.json
+├── package-lock.json
+├── requirements.txt
+└── README.md
 ```
-/
-├── tickers.json        # Categorized list of stock tickers
-├── index.js            # Express backend server
-└── src/
-    ├── index.js        # React entry point
-    ├── App.js          # Main React component
-    ├── index.css       # Global styles
-    └── components/
-        └── header.js   # Header component
+
+---
+
+# Components
+
+## Backend
+
+### main.py
+
+FastAPI application that exposes REST endpoints for retrieving stock data.
+
+Endpoints:
+
+```text
+GET /api/tickers
+GET /api/stocks/{category}
+```
+
+Responsibilities:
+
+* Loads ticker categories from `tickers.json`
+* Retrieves stock data from Yahoo Finance
+* Formats data for the React frontend
+* Returns JSON responses
+
+---
+
+### tickers.json
+
+Stores stock tickers grouped by category.
+
+Example:
+
+```json
+{
+  "oil": ["MPC", "OXY", "CVX", "XOM"],
+  "tech": ["AAPL", "MSFT", "GOOGL", "AMZN"]
+}
 ```
 
 ---
 
-## Getting Started
+### test_yahoo.py
 
-### Prerequisites
+Used to verify that Yahoo Finance is returning data correctly.
 
-- [Node.js](https://nodejs.org/) v16 or higher
-- npm
-
----
-
-### 1. Install Backend Dependencies
-
-From the project root (where `index.js` and `tickers.json` live):
+Example:
 
 ```bash
-npm install express cors yahoo-finance2
+python test_yahoo.py
 ```
 
-### 2. Install Frontend Dependencies
+---
 
-From the React app directory (where `src/` lives):
+## Frontend
+
+### App.js
+
+Main React component.
+
+Responsibilities:
+
+* Loads stock data from the backend
+* Displays stock table
+* Supports sorting
+* Supports filtering
+* Applies color formatting based on stock performance
+* Supports category selection
+
+---
+
+### header.js
+
+Displays the Wise Trades logo and page title.
+
+---
+
+### index.css
+
+Contains:
+
+* Page styling
+* Table styling
+* Filter styling
+* Color formatting rules
+
+---
+
+# How It Works
+
+1. User loads the React application.
+2. React calls the backend API.
+3. FastAPI loads ticker information.
+4. FastAPI retrieves stock data using Yahoo Finance.
+5. Backend returns JSON.
+6. React displays the data in a sortable and filterable table.
+
+Data Flow:
+
+```text
+React
+  ↓
+FastAPI
+  ↓
+Yahoo Finance (yfinance)
+  ↓
+FastAPI
+  ↓
+React UI
+```
+
+---
+
+# Python Virtual Environment Setup
+
+Create the virtual environment:
+
+```bash
+python -m venv .venv
+```
+
+Activate the environment:
+
+### Mac/Linux
+
+```bash
+source .venv/bin/activate
+```
+
+### Windows
+
+```bash
+.venv\Scripts\activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+If requirements.txt does not exist:
+
+```bash
+pip install fastapi uvicorn yfinance pandas
+```
+
+Create requirements.txt:
+
+```bash
+pip freeze > requirements.txt
+```
+
+---
+
+# Running the Backend
+
+Activate the virtual environment:
+
+```bash
+source .venv/bin/activate
+```
+
+Navigate to the backend directory:
+
+```bash
+cd backend
+```
+
+Start FastAPI:
+
+```bash
+uvicorn main:app --reload --port 5001
+```
+
+Backend URL:
+
+```text
+http://localhost:5001
+```
+
+---
+
+# Running the Frontend
+
+Open a second terminal.
+
+Navigate to the frontend directory:
+
+```bash
+cd frontend
+```
+
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-If starting fresh:
-
-```bash
-npx create-react-app .
-npm install axios
-```
-
----
-
-## Running the App
-
-You need to run **two processes** — the backend and the frontend — at the same time.
-
-### Start the Backend (Terminal 1)
-
-```bash
-node index.js
-```
-
-The API server will start at: `http://localhost:5001`
-
-### Start the Frontend (Terminal 2)
+Start React:
 
 ```bash
 npm start
 ```
 
-The React app will open at: `http://localhost:3000`
+Frontend URL:
+
+```text
+http://localhost:3000
+```
 
 ---
 
-## API Reference
+# Running Frontend and Backend Together
 
-### `GET /api/stocks/:category`
-
-Returns stock data for the given category.
-
-**Available categories:**
-`all`, `oil`, `tech`, `finance`, `chips`, `ai`, `energy`, `airlines`, `travel`, `hotels`, `shipping`, `builders`, `materials`, `memory`
-
-**Example:**
-```
-GET http://localhost:5001/api/stocks/tech
-```
-
-**Response fields per stock:**
-
-| Field               | Description                          |
-|---------------------|--------------------------------------|
-| `Ticker`            | Stock symbol                         |
-| `CompanyName`       | Short company name                   |
-| `CurrentPrice`      | Latest market price                  |
-| `FiftyTwoWeekHigh`  | 52-week high price                   |
-| `FiftyTwoWeekLow`   | 52-week low price                    |
-| `MarketCap`         | Market capitalization                |
-| `CHANGE`            | Daily % price change                 |
-| `HighToCurrentChange` | % drop from 52-week high           |
-| `EarningsDate`      | Upcoming earnings date(s)            |
-
----
-
-## Adding Tickers
-
-Edit `tickers.json` to add or remove tickers from any category, or create a new category:
+Root package.json:
 
 ```json
 {
-  "myCategory": ["AAPL", "MSFT", "GOOGL"]
+  "name": "wise-trade",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && ../.venv/bin/uvicorn main:app --reload --port 5001",
+    "client": "cd frontend && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
 }
 ```
 
-The new category will automatically appear as an option in the frontend dropdown.
+Install root dependencies:
 
-> **Note:** After adding a category to `tickers.json`, also add it to the `categories` array in `App.js` so it appears in the dropdown.
+```bash
+npm install
+```
+
+Run everything:
+
+```bash
+npm start
+```
+
+This launches:
+
+```text
+Backend:  http://localhost:5001
+Frontend: http://localhost:3000
+```
 
 ---
 
-## Troubleshooting
+# API Endpoints
 
-| Issue | Fix |
-|-------|-----|
-| `CORS error` in browser | Ensure the backend is running on port 5001 |
-| `Cannot find module 'yahoo-finance2'` | Run `npm install yahoo-finance2` in the backend directory |
-| `Error fetching stock data` | Check your internet connection; Yahoo Finance may rate-limit heavy requests |
-| Earnings date shows "not available" | Some tickers don't have earnings data available via Yahoo Finance |
+## Get Tickers
+
+```http
+GET /api/tickers
+```
+
+Returns:
+
+```json
+{
+  "oil": ["MPC", "OXY"],
+  "tech": ["AAPL", "MSFT"]
+}
+```
+
+---
+
+## Get Stocks By Category
+
+```http
+GET /api/stocks/oil
+```
+
+Example response:
+
+```json
+[
+  {
+    "Ticker": "MPC",
+    "CompanyName": "MPC",
+    "CurrentPrice": 248.77,
+    "FiftyTwoWeekHigh": 264.14,
+    "FiftyTwoWeekLow": 155.93,
+    "MarketCap": 72630000000,
+    "CHANGE": "N/A",
+    "HighToCurrentChange": "-5.82%",
+    "EarningsDate": "N/A"
+  }
+]
+```
+
+---
+
+# Testing Yahoo Finance
+
+Run:
+
+```bash
+cd backend
+python test_yahoo.py
+```
+
+Expected output:
+
+```text
+Price: 312.06
+52W High: 313.26
+52W Low: 195.07
+Market Cap: 4583340000000
+```
+
+If this works, Yahoo Finance is available.
+
+---
+
+# Troubleshooting
+
+## Could not import module "main"
+
+Run from the backend directory:
+
+```bash
+cd backend
+uvicorn main:app --reload --port 5001
+```
+
+---
+
+## Port 3000 Already Running
+
+```bash
+lsof -ti:3000 | xargs kill -9
+```
+
+---
+
+## Port 5001 Already Running
+
+```bash
+lsof -ti:5001 | xargs kill -9
+```
+
+---
+
+## All Values Show N/A
+
+Verify:
+
+1. Backend is running.
+2. `test_yahoo.py` works.
+3. `main.py` uses:
+
+```python
+fast.get("lastPrice")
+fast.get("yearHigh")
+fast.get("yearLow")
+fast.get("marketCap")
+```
+
+---
+
+# Future Improvements
+
+* Cache Yahoo Finance responses
+* Parallel stock retrieval
+* Company name lookup
+* Earnings date support
+* Daily percentage change support
+* Mobile-responsive layout
+* Export to CSV
+* Watchlists and favorites

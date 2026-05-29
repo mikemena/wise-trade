@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "cd backend && npm start",
+    "server": "cd backend && ../.venv/bin/uvicorn main:app --reload --port 5001",
     "client": "cd frontend && npm start"
   },
   "devDependencies": {

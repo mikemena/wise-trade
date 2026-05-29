@@ -292,12 +292,12 @@ function App() {
                 </td>
                 <td>
                   {typeof stock.FiftyTwoWeekHigh === "number"
-                    ? `$${stock.FiftyTwoWeekHigh}`
+                    ? `$${stock.FiftyTwoWeekHigh.toFixed(2)}`
                     : stock.FiftyTwoWeekHigh}
                 </td>
                 <td>
                   {typeof stock.FiftyTwoWeekLow === "number"
-                    ? `$${stock.FiftyTwoWeekLow}`
+                    ? `$${stock.FiftyTwoWeekLow.toFixed(2)}`
                     : stock.FiftyTwoWeekLow}
                 </td>
                 <td>
