@@ -15,7 +15,8 @@
     "ADBE",
     "SPOT",
     "COIN",
-    "DELL"
+    "DELL",
+    "MRVL"
   ],
   "finance": ["JPM", "GS", "HOOD", "WFC"],
   "chips": ["INTC", "NVDA", "AMD", "MU", "ARM", "TSM", "AVGO"],
