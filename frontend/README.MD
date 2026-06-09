@@ -192,12 +192,6 @@ Activate the environment:
 source .venv/bin/activate
 ```
 
-### Windows
-
-```bash
-.venv\Scripts\activate
-```
-
 Install dependencies:
 
 ```bash
@@ -353,8 +347,7 @@ Example response:
     "FiftyTwoWeekLow": 155.93,
     "MarketCap": 72630000000,
     "CHANGE": "N/A",
-    "HighToCurrentChange": "-5.82%",
-    "EarningsDate": "N/A"
+    "HighToCurrentChange": "-5.82%"
   }
 ]
 ```

@@ -9,6 +9,7 @@ function App() {
     { value: "tech", label: "Tech" },
     { value: "finance", label: "Finance" },
     { value: "chips", label: "Chips" },
+    { value: "memory", label: "Memory" },
     { value: "etf", label: "ETF" },
     { value: "ai", label: "AI" },
     { value: "energy", label: "Energy" },
@@ -22,14 +23,16 @@ function App() {
   ];
 
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [allStockData, setAllStockData] = useState([]); // all fetched stocks, never changes after load
-  const [tickerMap, setTickerMap] = useState({}); // { oil: ['MPC', ...], tech: [...], ... }
+  const [allStockData, setAllStockData] = useState([]);
+  const [tickerMap, setTickerMap] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
   const [sortConfig, setSortConfig] = useState({
     key: null,
     direction: "ascending",
   });
+
   const [filters, setFilters] = useState({
     Ticker: "",
     CompanyName: "",
@@ -39,64 +42,113 @@ function App() {
     MarketCap: "",
     CHANGE: "",
     HighToCurrentChange: "",
+    DateSold: "",
+    PriceSold: "",
+    SoldToCurrentChange: "",
   });
 
-  // Fetch ALL stock data once on mount — no re-fetching when category changes
+  const percentageColumns = [
+    "CHANGE",
+    "HighToCurrentChange",
+    "SoldToCurrentChange",
+  ];
+
+  const numericColumns = [
+    "CurrentPrice",
+    "FiftyTwoWeekHigh",
+    "FiftyTwoWeekLow",
+    "MarketCap",
+    "PriceSold",
+  ];
+
+  const dateColumns = ["DateSold"];
+
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
       setError(null);
+
       try {
         const [tickersRes, stocksRes] = await Promise.all([
           axios.get("http://localhost:5001/api/tickers"),
           axios.get("http://localhost:5001/api/stocks/all"),
         ]);
+
         setTickerMap(tickersRes.data);
         setAllStockData(stocksRes.data);
       } catch (err) {
         setError("Error fetching stock data");
       }
+
       setLoading(false);
     };
+
     fetchAll();
   }, []);
 
-  // Filter allStockData by selected category — pure client-side, no API call
   const categoryStocks = useMemo(() => {
     if (selectedCategory === "all") return allStockData;
+
     const tickers = tickerMap[selectedCategory] || [];
     return allStockData.filter((stock) => tickers.includes(stock.Ticker));
   }, [allStockData, tickerMap, selectedCategory]);
 
-  // Sort — fixed to safely handle numbers, strings, and percentage strings
+  const parsePercentage = (value) => {
+    const parsed = parseFloat((value ?? "").toString().replace("%", ""));
+    return Number.isNaN(parsed) ? null : parsed;
+  };
+
+  const parseNumber = (value) => {
+    const parsed = parseFloat(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  };
+
+  const parseDate = (value) => {
+    const timestamp = Date.parse(value);
+    return Number.isNaN(timestamp) ? null : timestamp;
+  };
+
+  const compareNullableValues = (aValue, bValue) => {
+    const directionMultiplier = sortConfig.direction === "ascending" ? 1 : -1;
+
+    // Keep N/A or blank values at the bottom for both ascending and descending sorts.
+    if (aValue === null && bValue === null) return 0;
+    if (aValue === null) return 1;
+    if (bValue === null) return -1;
+
+    if (aValue < bValue) return -1 * directionMultiplier;
+    if (aValue > bValue) return 1 * directionMultiplier;
+    return 0;
+  };
+
   const sortedData = useMemo(() => {
     return [...categoryStocks].sort((a, b) => {
       if (!sortConfig.key) return 0;
 
-      let aValue = a[sortConfig.key];
-      let bValue = b[sortConfig.key];
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
 
-      // Percentage columns: strip '%' and parse as float
-      if (
-        sortConfig.key === "HighToCurrentChange" ||
-        sortConfig.key === "CHANGE"
-      ) {
-        aValue = parseFloat((aValue ?? "0").toString().replace("%", "")) || 0;
-        bValue = parseFloat((bValue ?? "0").toString().replace("%", "")) || 0;
+      if (percentageColumns.includes(sortConfig.key)) {
+        return compareNullableValues(
+          parsePercentage(aValue),
+          parsePercentage(bValue),
+        );
       }
 
-      // Numeric comparison
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        return sortConfig.direction === "ascending"
-          ? aValue - bValue
-          : bValue - aValue;
+      if (numericColumns.includes(sortConfig.key)) {
+        return compareNullableValues(parseNumber(aValue), parseNumber(bValue));
       }
 
-      // String comparison (Ticker, CompanyName, etc.)
+      if (dateColumns.includes(sortConfig.key)) {
+        return compareNullableValues(parseDate(aValue), parseDate(bValue));
+      }
+
       const aStr = (aValue ?? "").toString().toLowerCase();
       const bStr = (bValue ?? "").toString().toLowerCase();
+
       if (aStr < bStr) return sortConfig.direction === "ascending" ? -1 : 1;
       if (aStr > bStr) return sortConfig.direction === "ascending" ? 1 : -1;
+
       return 0;
     });
   }, [categoryStocks, sortConfig]);
@@ -129,6 +181,11 @@ function App() {
         String(stock.CHANGE || "").includes(filters.CHANGE) &&
         String(stock.HighToCurrentChange || "").includes(
           filters.HighToCurrentChange,
+        ) &&
+        String(stock.DateSold || "").includes(filters.DateSold) &&
+        String(stock.PriceSold || "").includes(filters.PriceSold) &&
+        String(stock.SoldToCurrentChange || "").includes(
+          filters.SoldToCurrentChange,
         )
       );
     });
@@ -136,12 +193,15 @@ function App() {
 
   const getBackgroundColor = (val) => {
     if (val === "N/A" || isNaN(parseFloat(val))) return "";
+
     const percentage = parseFloat(val.replace("%", ""));
+
     if (percentage <= -50) return "rgba(187, 44, 62, 1)";
     if (percentage < -40) return "rgba(187, 44, 62, 0.9)";
     if (percentage < -30) return "rgba(187, 44, 62, 0.8)";
     if (percentage < -20) return "rgba(187, 44, 62, 0.7)";
     if (percentage < -10) return "rgba(187, 44, 62, 0.6)";
+
     return "";
   };
 
@@ -150,16 +210,23 @@ function App() {
 
   const getPriceChangeColor = (val) => {
     if (val === "N/A" || isNaN(parseFloat(val))) return "";
+
     const percentage = parseFloat(val.replace("%", ""));
+
     if (percentage < 0) return "#BB2C3E";
     if (percentage > 0.1) return "#3E7C59";
+
     return "";
   };
 
   const usePriceChangeWhiteText = (val) =>
     getPriceChangeColor(val) !== "" ? "#F2EFE9" : "";
 
-  // Sort indicator arrow for column headers
+  const formatCurrency = (value) => {
+    if (typeof value === "number") return `$${value.toFixed(2)}`;
+    return value || "N/A";
+  };
+
   const getSortArrow = (key) => {
     if (sortConfig.key !== key) return " ↕";
     return sortConfig.direction === "ascending" ? " ↑" : " ↓";
@@ -168,6 +235,7 @@ function App() {
   return (
     <div>
       <Header />
+
       <h1 className="header">Stock Data</h1>
 
       <div id="select-category">
@@ -199,55 +267,78 @@ function App() {
               >
                 Ticker{getSortArrow("Ticker")}
               </th>
+
               <th
                 onClick={() => requestSort("CompanyName")}
                 style={{ cursor: "pointer" }}
               >
                 Company Name{getSortArrow("CompanyName")}
               </th>
+
               <th
                 onClick={() => requestSort("CurrentPrice")}
                 style={{ cursor: "pointer" }}
               >
                 Current Price{getSortArrow("CurrentPrice")}
               </th>
+
               <th
                 onClick={() => requestSort("FiftyTwoWeekHigh")}
                 style={{ cursor: "pointer" }}
               >
                 52 Week High{getSortArrow("FiftyTwoWeekHigh")}
               </th>
+
               <th
                 onClick={() => requestSort("FiftyTwoWeekLow")}
                 style={{ cursor: "pointer" }}
               >
                 52 Week Low{getSortArrow("FiftyTwoWeekLow")}
               </th>
+
               <th
                 onClick={() => requestSort("MarketCap")}
                 style={{ cursor: "pointer" }}
               >
                 Market Cap{getSortArrow("MarketCap")}
               </th>
+
               <th
                 onClick={() => requestSort("CHANGE")}
                 style={{ cursor: "pointer" }}
               >
                 Change{getSortArrow("CHANGE")}
               </th>
+
               <th
                 onClick={() => requestSort("HighToCurrentChange")}
                 style={{ cursor: "pointer" }}
               >
                 % Change from 52 Week High{getSortArrow("HighToCurrentChange")}
               </th>
+
               <th
-                onClick={() => requestSort("EarningsDate")}
+                onClick={() => requestSort("DateSold")}
                 style={{ cursor: "pointer" }}
               >
-                Earnings Date{getSortArrow("EarningsDate")}
+                Date Sold{getSortArrow("DateSold")}
+              </th>
+
+              <th
+                onClick={() => requestSort("PriceSold")}
+                style={{ cursor: "pointer" }}
+              >
+                Price Sold{getSortArrow("PriceSold")}
+              </th>
+
+              <th
+                onClick={() => requestSort("SoldToCurrentChange")}
+                style={{ cursor: "pointer" }}
+              >
+                % Change Since Sold{getSortArrow("SoldToCurrentChange")}
               </th>
             </tr>
+
             <tr className="filter-row">
               <th className="filter-cell">
                 <input
@@ -259,6 +350,7 @@ function App() {
                   }
                 />
               </th>
+
               <th className="filter-cell">
                 <input
                   type="text"
@@ -269,12 +361,50 @@ function App() {
                   }
                 />
               </th>
+
               <th className="filter-cell"></th>
               <th className="filter-cell"></th>
               <th className="filter-cell"></th>
               <th className="filter-cell"></th>
               <th className="filter-cell"></th>
               <th className="filter-cell"></th>
+
+              <th className="filter-cell">
+                <input
+                  type="text"
+                  value={filters.DateSold}
+                  className="filter-input"
+                  onChange={(e) =>
+                    setFilters({ ...filters, DateSold: e.target.value })
+                  }
+                />
+              </th>
+
+              <th className="filter-cell">
+                <input
+                  type="text"
+                  value={filters.PriceSold}
+                  className="filter-input"
+                  onChange={(e) =>
+                    setFilters({ ...filters, PriceSold: e.target.value })
+                  }
+                />
+              </th>
+
+              <th className="filter-cell">
+                <input
+                  type="text"
+                  value={filters.SoldToCurrentChange}
+                  className="filter-input"
+                  onChange={(e) =>
+                    setFilters({
+                      ...filters,
+                      SoldToCurrentChange: e.target.value,
+                    })
+                  }
+                />
+              </th>
+
               <th className="filter-cell"></th>
             </tr>
           </thead>
@@ -283,28 +413,21 @@ function App() {
             {filteredData.map((stock, index) => (
               <tr key={index}>
                 <td>{stock.Ticker}</td>
+
                 <td>{stock.CompanyName}</td>
-                <td>
-                  $
-                  {typeof stock.CurrentPrice === "number"
-                    ? stock.CurrentPrice.toFixed(2)
-                    : stock.CurrentPrice}
-                </td>
-                <td>
-                  {typeof stock.FiftyTwoWeekHigh === "number"
-                    ? `$${stock.FiftyTwoWeekHigh.toFixed(2)}`
-                    : stock.FiftyTwoWeekHigh}
-                </td>
-                <td>
-                  {typeof stock.FiftyTwoWeekLow === "number"
-                    ? `$${stock.FiftyTwoWeekLow.toFixed(2)}`
-                    : stock.FiftyTwoWeekLow}
-                </td>
+
+                <td>{formatCurrency(stock.CurrentPrice)}</td>
+
+                <td>{formatCurrency(stock.FiftyTwoWeekHigh)}</td>
+
+                <td>{formatCurrency(stock.FiftyTwoWeekLow)}</td>
+
                 <td>
                   {stock.MarketCap !== "N/A" && stock.MarketCap
                     ? `$${(stock.MarketCap / 1e9).toFixed(2)}B`
                     : "N/A"}
                 </td>
+
                 <td
                   style={{
                     backgroundColor: getPriceChangeColor(stock.CHANGE),
@@ -313,6 +436,7 @@ function App() {
                 >
                   {stock.CHANGE}
                 </td>
+
                 <td
                   style={{
                     backgroundColor: getBackgroundColor(
@@ -323,10 +447,20 @@ function App() {
                 >
                   {stock.HighToCurrentChange}
                 </td>
-                <td>
-                  {Array.isArray(stock.EarningsDate)
-                    ? stock.EarningsDate.join(", ")
-                    : stock.EarningsDate}
+
+                <td>{stock.DateSold || "N/A"}</td>
+
+                <td>{formatCurrency(stock.PriceSold)}</td>
+
+                <td
+                  style={{
+                    backgroundColor: getPriceChangeColor(
+                      stock.SoldToCurrentChange,
+                    ),
+                    color: usePriceChangeWhiteText(stock.SoldToCurrentChange),
+                  }}
+                >
+                  {stock.SoldToCurrentChange || "N/A"}
                 </td>
               </tr>
             ))}

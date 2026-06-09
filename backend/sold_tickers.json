@@ -1,0 +1,62 @@
+{
+  "AAPL": {
+    "date_sold": "2026-06-01",
+    "price_sold": 313.93
+  },
+  "TSLA": {
+    "date_sold": "2026-06-05",
+    "price_sold": 393.27
+  },
+  "TSM": {
+    "date_sold": "2026-06-05",
+    "price_sold": 424.17
+  },
+  "NVDA": {
+    "date_sold": "2026-06-05",
+    "price_sold": 207.86
+  },
+  "NEE": {
+    "date_sold": "2026-06-05",
+    "price_sold": 85.97
+  },
+  "MU": {
+    "date_sold": "2026-06-05",
+    "price_sold": 922.91
+  },
+  "MRVL": {
+    "date_sold": "2026-06-05",
+    "price_sold": 288.3
+  },
+  "FDXF": {
+    "date_sold": "2026-06-05",
+    "price_sold": 169.34
+  },
+  "META": {
+    "date_sold": "2026-06-05",
+    "price_sold": 593.19
+  },
+  "DELL": {
+    "date_sold": "2026-06-05",
+    "price_sold": 402.58
+  },
+  "CEG": {
+    "date_sold": "2026-06-05",
+    "price_sold": 255.59
+  },
+  "COIN": {
+    "date_sold": "2026-06-05",
+    "price_sold": 148.26
+  },
+  "ARM": {
+    "date_sold": "2026-06-05",
+    "price_sold": 356.79
+  },
+  "AMD": {
+    "date_sold": "2026-06-05",
+    "price_sold": 483.35
+  },
+  "PLTR": {
+    "date_sold": "2026-05-28",
+    "price_sold": 140.24
+  }
+}
