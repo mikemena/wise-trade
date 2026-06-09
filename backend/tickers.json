@@ -16,12 +16,13 @@
     "SPOT",
     "COIN",
     "DELL",
-    "MRVL"
+    "MRVL",
+    "MSTR"
   ],
-  "finance": ["JPM", "GS", "HOOD", "WFC"],
+  "finance": ["JPM", "GS", "HOOD"],
   "chips": ["INTC", "NVDA", "AMD", "MU", "ARM", "TSM", "AVGO"],
   "memory": ["WDC", "STX", "PSTG"],
-  "ai": ["PLTR", "AI", "TEM", "CRWV"],
+  "ai": ["PLTR", "AI", "CRWV"],
   "energy": [
     "NEE",
     "DUK",
