@@ -1,32 +1,20 @@
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import Header from "./components/header";
+import SearchableSelect from "./components/SearchableSelect";
+
+// Columns filtered by exact-match searchable dropdowns.
+const facetColumns = ["Ticker", "CompanyName", "Sector", "Industry"];
 
 function App() {
-  const categories = [
-    { value: "all", label: "All" },
-    { value: "oil", label: "Oil" },
-    { value: "tech", label: "Tech" },
-    { value: "finance", label: "Finance" },
-    { value: "chips", label: "Chips" },
-    { value: "memory", label: "Memory" },
-    { value: "etf", label: "ETF" },
-    { value: "ai", label: "AI" },
-    { value: "energy", label: "Energy" },
-    { value: "airlines", label: "Airlines" },
-    { value: "travel", label: "Travel" },
-    { value: "hotels", label: "Hotels" },
-    { value: "shipping", label: "Shipping" },
-    { value: "builders", label: "Builders" },
-    { value: "materials", label: "Materials" },
-    { value: "psychedelic", label: "Psychedelic" },
-  ];
-
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [allStockData, setAllStockData] = useState([]);
-  const [tickerMap, setTickerMap] = useState({});
+  const [starredTickers, setStarredTickers] = useState(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [newTicker, setNewTicker] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [addStatus, setAddStatus] = useState(null);
 
   const [sortConfig, setSortConfig] = useState({
     key: null,
@@ -36,12 +24,8 @@ function App() {
   const [filters, setFilters] = useState({
     Ticker: "",
     CompanyName: "",
-    CurrentPrice: "",
-    FiftyTwoWeekHigh: "",
-    FiftyTwoWeekLow: "",
-    MarketCap: "",
-    CHANGE: "",
-    HighToCurrentChange: "",
+    Sector: "",
+    Industry: "",
     DateSold: "",
     PriceSold: "",
     SoldToCurrentChange: "",
@@ -69,13 +53,13 @@ function App() {
       setError(null);
 
       try {
-        const [tickersRes, stocksRes] = await Promise.all([
-          axios.get("http://localhost:5001/api/tickers"),
-          axios.get("http://localhost:5001/api/stocks/all"),
+        const [stocksRes, starredRes] = await Promise.all([
+          axios.get("http://localhost:5001/api/stocks"),
+          axios.get("http://localhost:5001/api/starred-tickers"),
         ]);
 
-        setTickerMap(tickersRes.data);
         setAllStockData(stocksRes.data);
+        setStarredTickers(new Set(starredRes.data));
       } catch (err) {
         setError("Error fetching stock data");
       }
@@ -86,12 +70,74 @@ function App() {
     fetchAll();
   }, []);
 
-  const categoryStocks = useMemo(() => {
-    if (selectedCategory === "all") return allStockData;
+  const toggleStar = async (ticker) => {
+    // Optimistic update so the UI flips immediately.
+    const previous = new Set(starredTickers);
+    const next = new Set(starredTickers);
 
-    const tickers = tickerMap[selectedCategory] || [];
-    return allStockData.filter((stock) => tickers.includes(stock.Ticker));
-  }, [allStockData, tickerMap, selectedCategory]);
+    if (next.has(ticker)) {
+      next.delete(ticker);
+    } else {
+      next.add(ticker);
+    }
+
+    setStarredTickers(next);
+
+    try {
+      await axios.post(`http://localhost:5001/api/star/${ticker}`);
+    } catch (err) {
+      // Revert if the backend write failed.
+      setStarredTickers(previous);
+    }
+  };
+
+  const handleAddTicker = async () => {
+    const symbol = newTicker.trim().toUpperCase();
+    if (!symbol || adding) return;
+
+    setAdding(true);
+    setAddStatus(null);
+
+    try {
+      const res = await axios.post(
+        `http://localhost:5001/api/stocks/${symbol}`,
+      );
+      setAllStockData((prev) => [...prev, res.data]);
+      setNewTicker("");
+      setAddStatus(`Added ${symbol}`);
+    } catch (err) {
+      setAddStatus(err.response?.data?.detail || `Could not add ${symbol}`);
+    }
+
+    setAdding(false);
+  };
+
+  // True when a stock matches every active dropdown filter, optionally
+  // ignoring one column. Ignoring lets each dropdown's option list
+  // cascade off the OTHER selections without filtering itself away.
+  const matchesFacets = (stock, excludeKey = null) => {
+    return facetColumns.every((key) => {
+      if (key === excludeKey || !filters[key]) return true;
+      return stock[key] === filters[key];
+    });
+  };
+
+  const facetOptions = useMemo(() => {
+    const options = {};
+
+    for (const key of facetColumns) {
+      const values = new Set();
+
+      for (const stock of allStockData) {
+        if (!matchesFacets(stock, key)) continue;
+        if (stock[key]) values.add(String(stock[key]));
+      }
+
+      options[key] = [...values].sort();
+    }
+
+    return options;
+  }, [allStockData, filters]);
 
   const parsePercentage = (value) => {
     const parsed = parseFloat((value ?? "").toString().replace("%", ""));
@@ -122,8 +168,16 @@ function App() {
   };
 
   const sortedData = useMemo(() => {
-    return [...categoryStocks].sort((a, b) => {
+    return [...allStockData].sort((a, b) => {
       if (!sortConfig.key) return 0;
+
+      if (sortConfig.key === "Starred") {
+        // Starred rows sort as 1, unstarred as 0.
+        return compareNullableValues(
+          starredTickers.has(a.Ticker) ? 1 : 0,
+          starredTickers.has(b.Ticker) ? 1 : 0,
+        );
+      }
 
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
@@ -151,7 +205,7 @@ function App() {
 
       return 0;
     });
-  }, [categoryStocks, sortConfig]);
+  }, [allStockData, sortConfig, starredTickers]);
 
   const requestSort = (key) => {
     setSortConfig((prev) => ({
@@ -165,23 +219,11 @@ function App() {
 
   const filteredData = useMemo(() => {
     return sortedData.filter((stock) => {
+      // Exact-match dropdown filters.
+      if (!matchesFacets(stock)) return false;
+
+      // Substring filters.
       return (
-        (stock.Ticker?.toLowerCase() || "").includes(
-          filters.Ticker.toLowerCase(),
-        ) &&
-        (stock.CompanyName?.toLowerCase() || "").includes(
-          filters.CompanyName.toLowerCase(),
-        ) &&
-        String(stock.CurrentPrice || "").includes(filters.CurrentPrice) &&
-        String(stock.FiftyTwoWeekHigh || "").includes(
-          filters.FiftyTwoWeekHigh,
-        ) &&
-        String(stock.FiftyTwoWeekLow || "").includes(filters.FiftyTwoWeekLow) &&
-        String(stock.MarketCap || "").includes(filters.MarketCap) &&
-        String(stock.CHANGE || "").includes(filters.CHANGE) &&
-        String(stock.HighToCurrentChange || "").includes(
-          filters.HighToCurrentChange,
-        ) &&
         String(stock.DateSold || "").includes(filters.DateSold) &&
         String(stock.PriceSold || "").includes(filters.PriceSold) &&
         String(stock.SoldToCurrentChange || "").includes(
@@ -190,6 +232,10 @@ function App() {
       );
     });
   }, [sortedData, filters]);
+
+  const setFacetFilter = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
 
   const getBackgroundColor = (val) => {
     if (val === "N/A" || isNaN(parseFloat(val))) return "";
@@ -238,19 +284,24 @@ function App() {
 
       <h1 className="header">Stock Data</h1>
 
-      <div id="select-category">
-        <label>Select Category: </label>
-        <select
-          id="category-select"
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
+      <div id="add-ticker">
+        <input
+          type="text"
+          className="add-ticker-input"
+          placeholder="Add ticker (e.g. NVDA)"
+          value={newTicker}
+          onChange={(e) => setNewTicker(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleAddTicker()}
+        />
+        <button
+          type="button"
+          className="add-ticker-button"
+          onClick={handleAddTicker}
+          disabled={adding || !newTicker.trim()}
         >
-          {categories.map((category) => (
-            <option key={category.value} value={category.value}>
-              {category.label}
-            </option>
-          ))}
-        </select>
+          {adding ? "Adding..." : "Add ticker"}
+        </button>
+        {addStatus && <span className="add-ticker-status">{addStatus}</span>}
       </div>
 
       {loading ? (
@@ -261,6 +312,14 @@ function App() {
         <table className="table-bordered" cellPadding="10" cellSpacing="0">
           <thead>
             <tr>
+              <th
+                onClick={() => requestSort("Starred")}
+                style={{ cursor: "pointer" }}
+                title="Sort by starred"
+              >
+                ★{getSortArrow("Starred")}
+              </th>
+
               <th
                 onClick={() => requestSort("Ticker")}
                 style={{ cursor: "pointer" }}
@@ -273,6 +332,20 @@ function App() {
                 style={{ cursor: "pointer" }}
               >
                 Company Name{getSortArrow("CompanyName")}
+              </th>
+
+              <th
+                onClick={() => requestSort("Sector")}
+                style={{ cursor: "pointer" }}
+              >
+                Sector{getSortArrow("Sector")}
+              </th>
+
+              <th
+                onClick={() => requestSort("Industry")}
+                style={{ cursor: "pointer" }}
+              >
+                Industry{getSortArrow("Industry")}
               </th>
 
               <th
@@ -340,25 +413,41 @@ function App() {
             </tr>
 
             <tr className="filter-row">
+              <th className="filter-cell"></th>
+
               <th className="filter-cell">
-                <input
-                  type="text"
+                <SearchableSelect
                   value={filters.Ticker}
-                  className="filter-input"
-                  onChange={(e) =>
-                    setFilters({ ...filters, Ticker: e.target.value })
-                  }
+                  options={facetOptions.Ticker}
+                  onChange={(value) => setFacetFilter("Ticker", value)}
+                  placeholder="All"
                 />
               </th>
 
               <th className="filter-cell">
-                <input
-                  type="text"
+                <SearchableSelect
                   value={filters.CompanyName}
-                  className="filter-input"
-                  onChange={(e) =>
-                    setFilters({ ...filters, CompanyName: e.target.value })
-                  }
+                  options={facetOptions.CompanyName}
+                  onChange={(value) => setFacetFilter("CompanyName", value)}
+                  placeholder="All"
+                />
+              </th>
+
+              <th className="filter-cell">
+                <SearchableSelect
+                  value={filters.Sector}
+                  options={facetOptions.Sector}
+                  onChange={(value) => setFacetFilter("Sector", value)}
+                  placeholder="All"
+                />
+              </th>
+
+              <th className="filter-cell">
+                <SearchableSelect
+                  value={filters.Industry}
+                  options={facetOptions.Industry}
+                  onChange={(value) => setFacetFilter("Industry", value)}
+                  placeholder="All"
                 />
               </th>
 
@@ -404,17 +493,38 @@ function App() {
                   }
                 />
               </th>
-
-              <th className="filter-cell"></th>
             </tr>
           </thead>
 
           <tbody>
             {filteredData.map((stock, index) => (
-              <tr key={index}>
+              <tr key={stock.Ticker || index}>
+                <td className="star-cell">
+                  <button
+                    type="button"
+                    className={
+                      starredTickers.has(stock.Ticker)
+                        ? "star-button starred"
+                        : "star-button"
+                    }
+                    onClick={() => toggleStar(stock.Ticker)}
+                    aria-label={
+                      starredTickers.has(stock.Ticker)
+                        ? `Unstar ${stock.Ticker}`
+                        : `Star ${stock.Ticker}`
+                    }
+                  >
+                    {starredTickers.has(stock.Ticker) ? "★" : "☆"}
+                  </button>
+                </td>
+
                 <td>{stock.Ticker}</td>
 
                 <td>{stock.CompanyName}</td>
+
+                <td>{stock.Sector || "N/A"}</td>
+
+                <td>{stock.Industry || "N/A"}</td>
 
                 <td>{formatCurrency(stock.CurrentPrice)}</td>
 
